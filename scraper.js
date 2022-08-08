@@ -75,6 +75,10 @@ app.get("/new/*", async (req, res) => {
   res.json(data);
 });
 
+app.get("/", async (req, res) => {
+  res.send("hello");
+});
+
 app.listen(process.env.PORT || PORT, () => {
   console.log("running on " + PORT);
 });
