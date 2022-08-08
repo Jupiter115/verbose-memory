@@ -1,10 +1,13 @@
+require("dotenv").config();
 const puppeteer = require("puppeteer");
 const express = require("express");
 const app = express();
 const PORT = 8800;
 const cors = require("cors");
-require("dotenv").config();
 
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
 const scrapeProduct = async (url) => {
@@ -12,21 +15,17 @@ const scrapeProduct = async (url) => {
     browserWSEndpoint:
       `wss://chrome.browserless.io?token=` + process.env.API_KEY,
   });
-
   //new page
   const page = await browser.newPage();
   await page.goto(url);
-
   //title
   const title = await page.$$eval("h1 span.a-size-large", (nodes) =>
     nodes.map((n) => n.innerText)
   );
-
   //  //image
   const [el] = await page.$x(`//*[@id="landingImage"]`);
   const src = await el.getProperty("src");
   const image = await src.jsonValue();
-
   //price $$
   const [el3] = await page.$x(
     '//*[@id="corePrice_desktop"]/div/table/tbody/tr[2]/td[2]/span[1]/span[1]'
@@ -37,7 +36,6 @@ const scrapeProduct = async (url) => {
     const txt2 = await el3.getProperty("textContent");
     price = await txt2.jsonValue();
   }
-
   //orig $$
   const [el4] = await page.$x(
     '//*[@id="corePrice_desktop"]/div/table/tbody/tr[1]/td[2]/span[1]/span[1]'
@@ -56,7 +54,6 @@ const scrapeProduct = async (url) => {
     const txt4 = await el5.getProperty("textContent");
     description1 = await txt4.jsonValue();
   }
-
   //description point 2
   const [el6] = await page.$x('//*[@id="feature-bullets"]/ul/li[3]/span');
   if (!el6) {
@@ -65,9 +62,7 @@ const scrapeProduct = async (url) => {
     const txt5 = await el6.getProperty("textContent");
     description2 = await txt5.jsonValue();
   }
-
   const description = description1 + " " + description2;
-
   browser.close();
   return { title, image, description, orig, price };
 };
@@ -79,7 +74,7 @@ app.get("/new/*", async (req, res) => {
 });
 
 app.get("/", async (req, res) => {
-  res.send("hello");
+  res.send("Jupiter Scrapper. Please use /new/url");
 });
 
 app.listen(process.env.PORT || PORT, () => {
