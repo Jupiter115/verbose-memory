@@ -1,4 +1,7 @@
 const puppeteer = require('puppeteer')
+const express = require('express')
+const app = express()
+const PORT = 8080
 
 async function scrapeProduct(url){
   //launch browser
@@ -40,14 +43,19 @@ async function scrapeProduct(url){
 
   const description = description1 + ' ' + description2
 
-  console.log({image, title, price, orig, description})
-
-
+  return {image, title, price, orig, description, url}
   browser.close()
 
 
-  
-
-
 }
-scrapeProduct('https://www.amazon.com/eufy-Floodlight-Resolution-2000-Lumen-Weatherproof/dp/B09ZP38LT1?ref_=Oct_DLandingS_D_6c6d0ccd_60&smid=A1U62USFOR8NN3')
+
+app.get('/new/*', async (req, res)=>{
+  const url = req.params[0]
+  const data = await scrapeProduct(url)
+  res.json(data)
+})
+
+
+app.listen(process.env.PORT || PORT, ()=>{
+  console.log('running on ' + PORT)
+})
