@@ -19,9 +19,11 @@ const scrapeProduct = async (url) => {
   const page = await browser.newPage();
   await page.goto(url);
   //title
-  const title = await page.$$eval("h1 span.a-size-large", (nodes) =>
+
+  const getTitle = await page.$$eval("h1 span.a-size-large", (nodes) =>
     nodes.map((n) => n.innerText)
   );
+  const title = getTitle[0];
   //  //image
   const [el] = await page.$x(`//*[@id="landingImage"]`);
   const src = await el.getProperty("src");
@@ -68,9 +70,13 @@ const scrapeProduct = async (url) => {
 };
 
 app.get("/new/*", async (req, res) => {
-  const url = req.params[0];
-  const data = await scrapeProduct(url);
-  res.json(data);
+  try {
+    const url = req.params[0];
+    const data = await scrapeProduct(url);
+    res.json(data);
+  } catch (err) {
+    res.send(console.log("error " + err));
+  }
 });
 
 app.get("/", async (req, res) => {
