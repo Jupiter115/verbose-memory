@@ -2,8 +2,9 @@ const puppeteer = require("puppeteer");
 const express = require("express");
 const app = express();
 const PORT = 8800;
-require("dotenv").config();
 const cors = require("cors");
+require("dotenv").config();
+
 app.use(cors());
 
 const scrapeProduct = async (url) => {
