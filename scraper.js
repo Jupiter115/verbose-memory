@@ -1,61 +1,80 @@
-const puppeteer = require('puppeteer')
-const express = require('express')
-const app = express()
-const PORT = 8080
+const puppeteer = require("puppeteer");
+const express = require("express");
+const app = express();
+const PORT = 8800;
+require("dotenv").config();
 
-async function scrapeProduct(url){
-  //launch browser
-  const browser = await puppeteer.launch()
+const scrapeProduct = async (url) => {
+  const browser = await puppeteer.connect({
+    browserWSEndpoint:
+      `wss://chrome.browserless.io?token=` + process.env.API_KEY,
+  });
+
   //new page
-  const page = await browser.newPage()
-  await page.goto(url)
-
-  //image
-  const [el] = await page.$x('//*[@id="landingImage"]')
-  const src = await el.getProperty('src')
-  const image = await src.jsonValue()
+  const page = await browser.newPage();
+  await page.goto(url);
 
   //title
-  const [el2] = await page.$x('//*[@id="productTitle"]')
-  const txt = await el2.getProperty('textContent')
-  const title2 = await txt.jsonValue()
-  let title = title2.trim()
+  const title = await page.$$eval("h1 span.a-size-large", (nodes) =>
+    nodes.map((n) => n.innerText)
+  );
 
-  //sale price
-  const [el3] = await page.$x('//*[@id="corePrice_desktop"]/div/table/tbody/tr[2]/td[2]/span[1]/span[1]')
-  const txt2 = await el3.getProperty('textContent')
-  const price = await txt2.jsonValue()
+  //  //image
+  const [el] = await page.$x(`//*[@id="landingImage"]`);
+  const src = await el.getProperty("src");
+  const image = await src.jsonValue();
 
-  //orig price
-  const [el4] = await page.$x('//*[@id="corePrice_desktop"]/div/table/tbody/tr[1]/td[2]/span[1]/span[1]')
-  const txt3 = await el4.getProperty('textContent')
-  const orig = await txt3.jsonValue()
+  //price $$
+  const [el3] = await page.$x(
+    '//*[@id="corePrice_desktop"]/div/table/tbody/tr[2]/td[2]/span[1]/span[1]'
+  );
+  if (!el3) {
+    price = 0;
+  } else {
+    const txt2 = await el3.getProperty("textContent");
+    price = await txt2.jsonValue();
+  }
 
+  //orig $$
+  const [el4] = await page.$x(
+    '//*[@id="corePrice_desktop"]/div/table/tbody/tr[1]/td[2]/span[1]/span[1]'
+  );
+  if (!el4) {
+    orig = 0;
+  } else {
+    const txt3 = await el4.getProperty("textContent");
+    orig = await txt3.jsonValue();
+  }
   //description point 1
-  const [el5] = await page.$x('//*[@id="feature-bullets"]/ul/li[2]')
-  const txt4 = await el5.getProperty('textContent')
-  const description1 = await txt4.jsonValue()
+  const [el5] = await page.$x('//*[@id="feature-bullets"]/ul/li[2]');
+  if (!el5) {
+    description1 = "";
+  } else {
+    const txt4 = await el5.getProperty("textContent");
+    description1 = await txt4.jsonValue();
+  }
 
   //description point 2
-  const [el6] = await page.$x('//*[@id="feature-bullets"]/ul/li[3]/span')
-  const txt5 = await el6.getProperty('textContent')
-  const description2 = await txt5.jsonValue()
+  const [el6] = await page.$x('//*[@id="feature-bullets"]/ul/li[3]/span');
+  if (!el6) {
+    description2 = "";
+  } else {
+    const txt5 = await el6.getProperty("textContent");
+    description2 = await txt5.jsonValue();
+  }
 
-  const description = description1 + ' ' + description2
+  const description = description1 + " " + description2;
 
-  return {image, title, price, orig, description, url}
-  browser.close()
+  browser.close();
+  return { title, image, description, orig, price };
+};
 
+app.get("/new/*", async (req, res) => {
+  const url = req.params[0];
+  const data = await scrapeProduct(url);
+  res.json(data);
+});
 
-}
-
-app.get('/new/*', async (req, res)=>{
-  const url = req.params[0]
-  const data = await scrapeProduct(url)
-  res.json(data)
-})
-
-
-app.listen(process.env.PORT || PORT, ()=>{
-  console.log('running on ' + PORT)
-})
+app.listen(process.env.PORT || PORT, () => {
+  console.log("running on " + PORT);
+});
