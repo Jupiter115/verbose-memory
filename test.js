@@ -1,1 +1,1 @@
-console.log("24.33".replace("$", ""));
+console.log(parseFloat("$3.4".slice(1)));
