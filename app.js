@@ -36,7 +36,7 @@ const scrapeProduct = async (url) => {
     price = 0;
   } else {
     const txt2 = await el3.getProperty("textContent");
-    price = await txt2.jsonValue();
+    price = await txt2.jsonValue().replace("$", "");
   }
   //orig $$
   const [el4] = await page.$x(
@@ -46,7 +46,7 @@ const scrapeProduct = async (url) => {
     orig = 0;
   } else {
     const txt3 = await el4.getProperty("textContent");
-    orig = await txt3.jsonValue();
+    orig = await txt3.jsonValue().replace("$", "");
   }
   //description point 1
   const [el5] = await page.$x('//*[@id="feature-bullets"]/ul/li[2]');
