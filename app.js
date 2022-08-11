@@ -123,7 +123,7 @@ const scrapeProduct = async (url) => {
   return { title, image, description, orig, price }; */
 };
 
-app.get("/new/*", async (req, res) => {
+/* app.get("/new/*", async (req, res) => {
   try {
     const url = req.params[0];
     const data = await scrapeProduct(url);
@@ -131,10 +131,11 @@ app.get("/new/*", async (req, res) => {
   } catch (err) {
     res.send(console.log("error " + err));
   }
-});
+}); */
 
 app.post("/scrape/", async (req, res) => {
   try {
+    console.log(req.body);
     const data = await scrapeProduct(req.body.url);
     res.json(data);
   } catch (err) {
