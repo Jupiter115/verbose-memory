@@ -19,6 +19,7 @@ const scrapeProduct = async (url) => {
       browserWSEndpoint:
         `wss://chrome.browserless.io?token=` + process.env.API_KEY,
       headless: true,
+      args: ["--no-sandbox"],
     });
     browser = await puppeteer.launch();
     const page = await browser.newPage();
